@@ -1,6 +1,6 @@
 {
  "schema": "reve-connect/partner-config/1",
- "built_at": "2026-10-20T20:11:30+00:00",
+ "built_at": "2026-10-26T15:17:34+00:00",
  "partner": {
   "id": "ladoublej",
   "name": "La DoubleJ",
@@ -22,7 +22,7 @@
   "dre0964sil009btu01gr03": {
    "reve_handle": "scarf-silk-dress",
    "title": "Scarf Midi Dress",
-   "image": "https://cdn.shopify.com/s/files/1/0954/9247/3196/files/jfklajfl_aksd.jpg?v=1778117533",
+   "image": "https://cdn.shopify.com/s/files/1/0954/9247/3196/files/scarf-silk-dress_model_front_3_3x4_2K.jpg?v=1792870736",
    "retail_cents": 139000,
    "fixed_fees": [
     {

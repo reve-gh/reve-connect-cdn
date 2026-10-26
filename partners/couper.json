@@ -1,6 +1,6 @@
 {
  "schema": "reve-connect/partner-config/1",
- "built_at": "2026-10-20T20:12:28+00:00",
+ "built_at": "2026-10-26T15:17:04+00:00",
  "partner": {
   "id": "couper",
   "name": "Couper",
@@ -96,15 +96,15 @@
        "label": "4 days",
        "days": 4,
        "nights": 3,
-       "selling_plan_id": 693989343596,
-       "price_cents": 5250
+       "selling_plan_id": 694247948652,
+       "price_cents": 5300
       },
       {
        "global_id": "gid://supercycle/CalendarOption/109147",
        "label": "7 days",
        "days": 7,
        "nights": 6,
-       "selling_plan_id": 693989376364,
+       "selling_plan_id": 694247981420,
        "price_cents": 6000
       },
       {
@@ -112,8 +112,59 @@
        "label": "14 days",
        "days": 14,
        "nights": 13,
-       "selling_plan_id": 693989409132,
+       "selling_plan_id": 694248046956,
        "price_cents": 7500
+      }
+     ]
+    }
+   ]
+  },
+  "jacquard-midi-dress": {
+   "reve_handle": "maggie-jacquard-wrap-dress",
+   "title": "Maggie Jacquard Wrap Dress",
+   "image": "https://cdn.shopify.com/s/files/1/0954/9247/3196/files/maggie-jacquard-wrap-dress_model_front_3x4_1K.jpg?v=1792438755",
+   "retail_cents": 39000,
+   "fixed_fees": [
+    {
+     "name": "Cleaning",
+     "price_cents": 0
+    },
+    {
+     "name": "Shipping",
+     "price_cents": 0
+    }
+   ],
+   "units": [
+    {
+     "variant_id": 67771465859436,
+     "size": "XS",
+     "partner_variant_ids": [
+      47373310001378
+     ],
+     "periods": [
+      {
+       "global_id": "gid://supercycle/CalendarOption/290962",
+       "label": "4 days",
+       "days": 4,
+       "nights": 3,
+       "selling_plan_id": 694209216876,
+       "price_cents": 6000
+      },
+      {
+       "global_id": "gid://supercycle/CalendarOption/290963",
+       "label": "7 days",
+       "days": 7,
+       "nights": 6,
+       "selling_plan_id": 694209249644,
+       "price_cents": 8000
+      },
+      {
+       "global_id": "gid://supercycle/CalendarOption/290964",
+       "label": "14 days",
+       "days": 14,
+       "nights": 13,
+       "selling_plan_id": 694209282412,
+       "price_cents": 10000
       }
      ]
     }
