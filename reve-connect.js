@@ -19,6 +19,9 @@
  * beacons. Contract: contracts/event.v1.schema.json. Nothing is stored on the device for it and nothing names the
  * shopper: the page-view id lives in memory and rides on the Rêve cart as _reve_pv, so a paid booking joins back
  * to its visit. Off for the shared demos (partner "demo") and when the store's consent banner says no to analytics.
+ * A partner who sends these to their own Google Analytics (config partner.ga4, 2026-10-29) gets one more field per
+ * batch: the store's own GA client and session ids, read from its _ga and _ga_<stream> cookies (never written), so
+ * Rêve's services/ga4 can put the button's events and the paid rental on the same visitor in that partner's GA.
  */
 (function (root, factory) {
   var core = factory();
@@ -30,7 +33,7 @@
   "use strict";
 
   var SCHEMA = "reve-connect/partner-config/1";
-  var VERSION = "1.1.0";
+  var VERSION = "1.2.0";
 
   // ---------------------------------------------------------------- pure helpers (unit-tested)
 
@@ -296,11 +299,32 @@
     return t && t !== "Default Title" ? String(t).slice(0, 80) : null;
   }
 
+  /* The store's own Google Analytics ids, for a partner whose config names its GA stream (partner.ga4): the client
+   * id is _ga's last two parts (GA1.1.<c>), the session id the s part of _ga_<stream> (GS2.1.s<s>$o1$g1$t...; the
+   * older GS1.1.<s>.<n>...). cookieText: document.cookie. -> { c, s } ({ c } before GA starts a session), or null
+   * without a well-formed _ga. The page's cookies are read here, never written. */
+  function gaIds(cookieText, measurementId) {
+    var jar = Object.create(null);           // a cookie named __proto__ is just a name
+    String(cookieText || "").split(";").forEach(function (part) {
+      var i = part.indexOf("=");
+      if (i > 0) { var k = part.slice(0, i).trim(); if (!has(jar, k)) jar[k] = part.slice(i + 1).trim(); }
+    });
+    var client = /^GA\d+\.\d+\.(\d{1,20}\.\d{1,20})$/.exec(jar._ga || "");
+    if (!client) return null;
+    var out = { c: client[1] };
+    var stream = /^G-([A-Z0-9]{4,20})$/.exec(measurementId || "");
+    var sess = (stream && jar["_ga_" + stream[1]]) || "";
+    var sid = /^GS\d+\.\d+\.s(\d{1,20})\$/.exec(sess) || /^GS1\.\d+\.(\d{1,20})\./.exec(sess);
+    if (sid) out.s = sid[1];
+    return out;
+  }
+
   /* One beacon's body: the page view's facts once, then its events (at most 50). */
   function batchBody(meta, events) {
     var b = { v: 1, partner: meta.partner, pv: meta.pv, widget: VERSION, device: meta.device };
     if (meta.wd) b.wd = true;
     if (meta.test) b.test = true;
+    if (meta.ga) b.ga = meta.ga;
     b.events = events;
     return b;
   }
@@ -383,6 +407,7 @@
     this.partner = cfg.partner.id; this.product = String(handle).slice(0, 200);
     this.pv = pageViewId(randomBytes()); this.seq = 0; this.queue = []; this.t0 = Date.now(); this.once = {};
     this.on = !!this.url && this.partner !== "demo" && analyticsChoice() !== false;
+    this.ga4 = (cfg.partner && cfg.partner.ga4) || null;     // the partner's own GA stream: its ids ride on each batch
     if (!this.on) return;
     this.onHide = function () { if (document.visibilityState === "hidden") self.flush(); };
     this.onLeave = function () { self.flush(); };
@@ -406,9 +431,12 @@
 
   Tracker.prototype.flush = function () {
     clearTimeout(this.timer); this.timer = null;
+    // read at each send, not once: the store's GA tag sets its cookies a moment after the page loads
+    var ga = null;
+    if (this.ga4 && this.queue.length) { try { ga = gaIds(document.cookie, this.ga4); } catch (e) { } }
     while (this.queue.length) {
       var body = JSON.stringify(batchBody({ partner: this.partner, pv: this.pv, device: deviceOf(window.innerWidth || 1024),
-        wd: navigator.webdriver === true, test: window.__reveConnectTest === true }, this.queue.splice(0, 50)));
+        wd: navigator.webdriver === true, test: window.__reveConnectTest === true, ga: ga }, this.queue.splice(0, 50)));
       var sent = false;
       try { sent = typeof navigator.sendBeacon === "function" && navigator.sendBeacon(this.url, new Blob([body], { type: "text/plain" })); } catch (e) { }
       if (!sent) {
@@ -668,6 +696,9 @@
     if (placed.length) this.hosts = placed;
     else {
       var host = el("div", { "data-reve-connect-host": "" });
+      // the host is an empty div in the page's own DOM (its content lives in the shadow root): a theme rule such as
+      // Staud's `.product__content div:empty{display:none!important}` (2026-10-22) hides it; the inline rule wins
+      host.style.setProperty("display", "block", "important");
       this.form.insertAdjacentElement("afterend", host);
       // a theme that narrows its buy column on the form itself (Ulla Johnson: max-width 90%) would
       // leave the button sticking out past Add to cart; the host takes the form's cap
@@ -706,6 +737,25 @@
     this.hosts = [];
   };
 
+  /* Quieter than Add to cart means never taller than it. have/want: the two buttons' heights; pads: the Rêve
+     button's vertical padding today. -> the vertical padding that puts it a hair under, never below 4px; null when
+     it already is under (or nothing to measure). Amanda Uprichard's Add to cart is 29px (2026-10-22); ours was 39. */
+  function fitPadding(have, want, padTop, padBottom) {
+    if (!(have > 0) || !(want > 0) || have < want) return null;
+    var content = have - (padTop || 0) - (padBottom || 0);
+    return Math.max(4, Math.floor((want - 1 - content) / 2));
+  }
+
+  function fitUnderAddToCart(cta, form, cartSel) {
+    if (!cta || !form || typeof getComputedStyle !== "function") return;
+    var atc = null;
+    try { atc = cartSel ? (form.matches(cartSel) ? form : form.querySelector(cartSel)) : form.querySelector('[type=submit]'); } catch (e) { }
+    if (!atc) return;
+    var cs = getComputedStyle(cta), pad = fitPadding(cta.getBoundingClientRect().height, atc.getBoundingClientRect().height,
+                                                   parseFloat(cs.paddingTop) || 0, parseFloat(cs.paddingBottom) || 0);
+    if (pad !== null) { cta.style.paddingTop = pad + "px"; cta.style.paddingBottom = pad + "px"; }
+  }
+
   Widget.prototype.drawButton = function (host) {
     var self = this, p = this.product;
     host.setAttribute("data-reve-connect-host", "");
@@ -724,6 +774,7 @@
     ]);
     shadow.appendChild(el("style", { text: CSS_BUTTON }));
     shadow.appendChild(rc);
+    fitUnderAddToCart(rc.querySelector("button.cta"), this.form, this.cfg.partner.cart_button);
     // drop "Rent it through" whole when the partner's font and column can't fit it (it shrinks first).
     // Not a container query: containment would collapse the button in a theme that sizes it to its content.
     var lead = rc.querySelector(".lead");
@@ -738,6 +789,7 @@
   Widget.prototype.mountPanel = function () {
     var self = this;
     var host = el("div", { "data-reve-connect-panel": "" });
+    host.style.setProperty("display", "block", "important");   // the same div:empty rule hides the panel host (PODYH, Staud)
     document.body.appendChild(host);
     this.root = host.attachShadow({ mode: "open" });
     this.root.appendChild(el("style", { text: CSS_PANEL }));
@@ -1180,7 +1232,7 @@
     fromPrice: fromPrice, buttonNote: buttonNote, formatMoney: formatMoney, formatDay: formatDay, formatPropDate: formatPropDate,
     intentBody: intentBody, splitIntent: splitIntent, cartInput: cartInput, cartFormFields: cartFormFields,
     bucket: bucket, worthRenting: worthRenting, validConfig: validConfig, boot: boot,
-    pageViewId: pageViewId, deviceOf: deviceOf, productFacts: productFacts, sizeLabel: sizeLabel, batchBody: batchBody,
-    daysBetween: daysBetween, Tracker: Tracker, watchBuys: watchBuys, analyticsChoice: analyticsChoice,
+    pageViewId: pageViewId, deviceOf: deviceOf, productFacts: productFacts, sizeLabel: sizeLabel, batchBody: batchBody, gaIds: gaIds,
+    daysBetween: daysBetween, Tracker: Tracker, watchBuys: watchBuys, analyticsChoice: analyticsChoice, fitPadding: fitPadding,
   };
 });
