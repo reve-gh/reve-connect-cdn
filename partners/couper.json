@@ -1,6 +1,6 @@
 {
  "schema": "reve-connect/partner-config/1",
- "built_at": "2026-10-26T15:17:04+00:00",
+ "built_at": "2026-11-02T14:32:24+00:00",
  "partner": {
   "id": "couper",
   "name": "Couper",
@@ -96,15 +96,15 @@
        "label": "4 days",
        "days": 4,
        "nights": 3,
-       "selling_plan_id": 694247948652,
-       "price_cents": 5300
+       "selling_plan_id": 694255714668,
+       "price_cents": 5500
       },
       {
        "global_id": "gid://supercycle/CalendarOption/109147",
        "label": "7 days",
        "days": 7,
        "nights": 6,
-       "selling_plan_id": 694247981420,
+       "selling_plan_id": 694255747436,
        "price_cents": 6000
       },
       {
@@ -112,7 +112,7 @@
        "label": "14 days",
        "days": 14,
        "nights": 13,
-       "selling_plan_id": 694248046956,
+       "selling_plan_id": 694255780204,
        "price_cents": 7500
       }
      ]
