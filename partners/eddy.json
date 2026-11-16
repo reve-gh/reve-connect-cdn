@@ -1,6 +1,6 @@
 {
  "schema": "reve-connect/partner-config/1",
- "built_at": "2026-10-20T20:13:02+00:00",
+ "built_at": "2026-11-16T15:58:15+00:00",
  "partner": {
   "id": "eddy",
   "name": "EDDY",
@@ -433,57 +433,6 @@
        "nights": 13,
        "selling_plan_id": 693982691692,
        "price_cents": 13000
-      }
-     ]
-    }
-   ]
-  },
-  "gavin-dress-chapel-white-floral": {
-   "reve_handle": "gavin-dress",
-   "title": "Gavin Dress",
-   "image": "https://cdn.shopify.com/s/files/1/0954/9247/3196/files/gavin-dress_model_front_3x4_1K.jpg?v=1784665344",
-   "retail_cents": 49800,
-   "fixed_fees": [
-    {
-     "name": "Cleaning",
-     "price_cents": 0
-    },
-    {
-     "name": "Shipping",
-     "price_cents": 0
-    }
-   ],
-   "units": [
-    {
-     "variant_id": 54064783393132,
-     "size": "S",
-     "partner_variant_ids": [
-      47613098393856
-     ],
-     "periods": [
-      {
-       "global_id": "gid://supercycle/CalendarOption/191955",
-       "label": "4 days",
-       "days": 4,
-       "nights": 3,
-       "selling_plan_id": 693996650860,
-       "price_cents": 7500
-      },
-      {
-       "global_id": "gid://supercycle/CalendarOption/191956",
-       "label": "7 days",
-       "days": 7,
-       "nights": 6,
-       "selling_plan_id": 693996683628,
-       "price_cents": 10500
-      },
-      {
-       "global_id": "gid://supercycle/CalendarOption/191957",
-       "label": "14 days",
-       "days": 14,
-       "nights": 13,
-       "selling_plan_id": 693996716396,
-       "price_cents": 12500
       }
      ]
     }
